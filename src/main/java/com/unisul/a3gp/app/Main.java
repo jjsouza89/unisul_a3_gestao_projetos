@@ -1,6 +1,7 @@
 package com.unisul.a3gp.app;
 
 import com.unisul.a3gp.model.Usuario;
+import com.unisul.a3gp.repository.UsuarioRepository;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -15,8 +16,10 @@ public class Main {
     private static final DateTimeFormatter DTF = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public static void main(String[] args) {
+        usuarios.addAll(UsuarioRepository.loadAll());
         loopMenu();
 
+        UsuarioRepository.saveAll(usuarios);
         System.out.println("Até mais!");
     }
 

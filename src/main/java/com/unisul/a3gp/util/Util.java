@@ -1,4 +1,4 @@
-package com.unisul.eventos.util;
+package com.unisul.a3gp.util;
 
 public class Util {
 

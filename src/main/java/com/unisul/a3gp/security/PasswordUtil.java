@@ -1,4 +1,4 @@
-package com.unisul.eventos.security;
+package com.unisul.a3gp.security;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

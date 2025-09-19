@@ -1,7 +1,7 @@
-package com.unisul.eventos.model;
+package com.unisul.a3gp.model;
 
-import com.unisul.eventos.security.PasswordUtil;
-import com.unisul.eventos.util.Util;
+import com.unisul.a3gp.security.PasswordUtil;
+import com.unisul.a3gp.util.Util;
 
 import java.time.LocalDateTime;
 import java.util.Objects;

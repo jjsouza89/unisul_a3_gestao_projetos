@@ -1,6 +1,8 @@
 package com.unisul.a3gp.repository;
 
 import com.unisul.a3gp.model.Projeto;
+import com.unisul.a3gp.model.Equipe;
+import com.unisul.a3gp.model.Usuario;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -45,6 +47,24 @@ public class ProjetoRepository {
             }
         } catch (IOException e) {
             throw new RuntimeException("Erro salvando " + FILE, e);
+        }
+    }
+
+    /** Resolve vínculos de gerente e equipe a partir dos IDs pendentes. */
+    public static void resolverVinculos(List<Projeto> projetos, List<Usuario> usuarios, List<Equipe> equipes) {
+        for (Projeto p : projetos) {
+            if (p.getPendingGerenteId() != null) {
+                usuarios.stream()
+                        .filter(u -> u.getId().equals(p.getPendingGerenteId()))
+                        .findFirst()
+                        .ifPresent(p::setGerenteResponsavel);
+            }
+            if (p.getPendingEquipeId() != null) {
+                equipes.stream()
+                        .filter(e -> e.getId().equals(p.getPendingEquipeId()))
+                        .findFirst()
+                        .ifPresent(p::setEquipe);
+            }
         }
     }
 }

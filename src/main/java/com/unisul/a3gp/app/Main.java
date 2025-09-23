@@ -33,14 +33,15 @@ public class Main {
     private static final List<Equipe> equipes = new ArrayList<>();
     private static final List<Projeto> projetos = new ArrayList<>();
 
-    // Formato de data/hora para o console
     private static final DateTimeFormatter DTF = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public static void main(String[] args) {
         // Load inicial
         usuarios.addAll(UsuarioRepository.loadAll());
         equipes.addAll(EquipeRepository.loadAll());
+        EquipeRepository.resolverVinculos(equipes, usuarios);
         projetos.addAll(ProjetoRepository.loadAll());
+        ProjetoRepository.resolverVinculos(projetos, usuarios, equipes);
 
         loopMenu();
 
@@ -63,8 +64,6 @@ public class Main {
             System.out.println("4) Listar Usuários");
             System.out.println("5) Listar Projetos");
             System.out.println("6) Listar Equipes");
-            System.out.println("7) Atribuir Gerente de Projetos");
-            System.out.println("8) Listar Projetos do Gerente");
 
             System.out.println("9) Sair");
             System.out.print("Opção: ");
@@ -87,7 +86,7 @@ public class Main {
                     listarProjetos();
                     break;
                 case "6":
-                    listarEquipes();
+                    listarEquipes(sc);
                     break;
                 case "9":
                     return;
@@ -188,21 +187,62 @@ public class Main {
         System.out.println("✅ Equipe cadastrada com sucesso! ID: " + equipe.getId());
     }
 
-    private static void listarEquipes() {
+    private static void listarEquipes(Scanner sc) {
         System.out.println("\n>>> Equipes cadastradas");
         if (equipes.isEmpty()) {
             System.out.println("(nenhuma equipe cadastrada ainda)");
             return;
         }
 
-        for (Equipe e : equipes) {
-            System.out.printf("- %s | %s | Membros: %d%n",
+        // Lista resumida
+        for (int i = 0; i < equipes.size(); i++) {
+            Equipe e = equipes.get(i);
+            System.out.printf("%d) %s | %s | Membros: %d%n",
+                    i + 1,
                     e.getNome(),
                     e.getDescricao(),
                     e.getMembros().size()
             );
         }
+
+        // Prompt detalhar
+        while (true) {
+            System.out.print("Digite o número da equipe para detalhar (0 para sair): ");
+            String resp = sc.nextLine().trim();
+            int idx;
+            try {
+                idx = Integer.parseInt(resp);
+            } catch (NumberFormatException e) {
+                System.out.println("Entrada inválida.");
+                continue;
+            }
+
+            if (idx == 0) break; // sair
+            if (idx < 1 || idx > equipes.size()) {
+                System.out.println("Número inválido.");
+                continue;
+            }
+
+            // Mostrar detalhes da equipe
+            Equipe escolhida = equipes.get(idx - 1);
+            System.out.println("\n>>> Detalhes da equipe: " + escolhida.getNome());
+            System.out.println("Descrição: " + escolhida.getDescricao());
+            if (escolhida.getMembros().isEmpty()) {
+                System.out.println("(nenhum membro cadastrado)");
+            } else {
+                for (Usuario u : escolhida.getMembros()) {
+                    System.out.printf("- %s | Email: %s | Cargo: %s | Perfil: %s%n",
+                            u.getNome(),
+                            u.getEmail(),
+                            u.getCargo(),
+                            u.getPerfil()
+                    );
+                }
+            }
+            System.out.println();
+        }
     }
+
 
 // ─────────────── FLUXOS DE PROJETO ───────────────
 

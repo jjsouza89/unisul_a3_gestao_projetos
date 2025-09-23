@@ -17,6 +17,10 @@ public class Projeto {
     private Usuario gerenteResponsavel;
     private Equipe equipe;
 
+    // IDs temporários usados apenas durante a reidratação via CSV
+    private UUID pendingGerenteId;
+    private UUID pendingEquipeId;
+
     /** Construtor padrão (útil para frameworks/serialização) */
     public Projeto() {
         this.id = UUID.randomUUID();
@@ -59,6 +63,10 @@ public class Projeto {
     public Usuario getGerenteResponsavel() { return gerenteResponsavel; }
     public Equipe getEquipe() { return equipe; }
 
+    // Getters dos IDs pendentes (usados pela Main para resolver vínculos)
+    public UUID getPendingGerenteId() { return pendingGerenteId; }
+    public UUID getPendingEquipeId() { return pendingEquipeId; }
+
     // Setters
     public void setNome(String nome) { this.nome = nome; }
     public void setDescricao(String descricao) { this.descricao = descricao; }
@@ -82,21 +90,30 @@ public class Projeto {
         );
     }
 
-    /** Reconstrói projeto a partir de CSV (gerente e equipe resolvidos depois) */
+    /** Reconstrói projeto a partir de CSV (gerente/equipe resolvidos depois) */
     public static Projeto fromCsv(String line) {
         String[] p = line.split(";", -1);
         if (p.length < 8) throw new IllegalArgumentException("Linha inválida para Projeto: " + line);
 
-        return new Projeto(
+        Projeto projeto = new Projeto(
                 UUID.fromString(p[0]),
                 Util.des(p[1]),
                 Util.des(p[2]),
                 p[3].isEmpty() ? null : LocalDate.parse(p[3]),
                 p[4].isEmpty() ? null : LocalDate.parse(p[4]),
                 p[5].isEmpty() ? null : StatusProjeto.valueOf(p[5]),
-                null, // gerente será resolvido via repositório
-                null  // equipe será resolvida via repositório
+                null, // gerente resolvido depois
+                null  // equipe resolvida depois
         );
+
+        if (!p[6].isEmpty()) {
+            projeto.pendingGerenteId = UUID.fromString(p[6]);
+        }
+        if (!p[7].isEmpty()) {
+            projeto.pendingEquipeId = UUID.fromString(p[7]);
+        }
+
+        return projeto;
     }
 
     @Override
@@ -125,5 +142,4 @@ public class Projeto {
     public int hashCode() {
         return id.hashCode();
     }
-
 }

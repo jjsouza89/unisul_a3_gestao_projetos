@@ -1,6 +1,7 @@
 package com.unisul.a3gp.repository;
 
 import com.unisul.a3gp.model.Equipe;
+import com.unisul.a3gp.model.Usuario;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -10,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class EquipeRepository {
 
@@ -45,6 +47,22 @@ public class EquipeRepository {
             }
         } catch (IOException e) {
             throw new RuntimeException("Erro salvando " + FILE, e);
+        }
+    }
+
+    /** Resolve os vínculos dos membros das equipes usando os IDs pendentes. */
+    public static void resolverVinculos(List<Equipe> equipes, List<Usuario> usuarios) {
+        for (Equipe equipe : equipes) {
+            if (equipe.getPendingMembrosIds() != null && !equipe.getPendingMembrosIds().isEmpty()) {
+                for (UUID membroId : equipe.getPendingMembrosIds()) {
+                    usuarios.stream()
+                            .filter(u -> u.getId().equals(membroId))
+                            .findFirst()
+                            .ifPresent(equipe::addMembro);
+                }
+                // Limpa as pendências depois de resolver
+                equipe.clearPendingMembrosIds();
+            }
         }
     }
 }

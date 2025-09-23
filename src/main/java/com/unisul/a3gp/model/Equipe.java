@@ -2,9 +2,8 @@ package com.unisul.a3gp.model;
 
 import com.unisul.a3gp.util.Util;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Equipe {
 
@@ -12,6 +11,9 @@ public class Equipe {
     private String nome;
     private String descricao;
     private List<Usuario> membros = new ArrayList<>();
+
+    // IDs temporários usados apenas durante a reidratação via CSV
+    List<UUID> pendingMembrosIds = new ArrayList<>();
 
     /** Construtor padrão */
     public Equipe() {
@@ -44,25 +46,45 @@ public class Equipe {
     public void addMembro(Usuario usuario) { membros.add(usuario); }
     public void removeMembro(Usuario usuario) { membros.remove(usuario); }
 
-    /** Serializa equipe em CSV (sem os membros, que podem ser salvos em arquivo separado ou por IDs) */
+    public List<UUID> getPendingMembrosIds() {
+        return pendingMembrosIds;
+    }
+    public void clearPendingMembrosIds() {
+        pendingMembrosIds.clear();
+    }
+
+    /** Serializa equipe em CSV (incluindo membros por ID) */
     public String toCsv() {
+        String membrosIds = membros.stream()
+                .map(u -> u.getId().toString())
+                .collect(Collectors.joining(","));
+
         return String.join(";",
                 id.toString(),
                 Util.esc(nome),
-                Util.esc(descricao)
+                Util.esc(descricao),
+                membrosIds
         );
     }
 
-    /** Reconstrói equipe a partir de CSV */
+    /** Reconstrói equipe a partir de CSV (membros resolvidos depois) */
     public static Equipe fromCsv(String line) {
         String[] p = line.split(";", -1);
-        if (p.length < 3) throw new IllegalArgumentException("Linha inválida para Equipe: " + line);
+        if (p.length < 4) throw new IllegalArgumentException("Linha inválida para Equipe: " + line);
 
-        return new Equipe(
+        Equipe e = new Equipe(
                 UUID.fromString(p[0]),
                 Util.des(p[1]),
                 Util.des(p[2])
         );
+
+        if (!p[3].isEmpty()) {
+            e.pendingMembrosIds = Arrays.stream(p[3].split(","))
+                    .map(UUID::fromString)
+                    .collect(Collectors.toList());
+        }
+
+        return e;
     }
 
     @Override
